@@ -20,9 +20,6 @@ def download_data(save_dir,list_path,isListed):
         tickers = df['ticker'] + '.TWO'
     tickers = tickers.tolist()
 
-    # Set the path for the combined CSV file
-    combined_csv_path = os.path.join(save_dir, 'TaiwanStocksHistData.csv')
-
     # Remove the file if it already exists to prevent duplicate data
     # if os.path.exists(combined_csv_path):
     #     os.remove(combined_csv_path)
@@ -37,6 +34,10 @@ def download_data(save_dir,list_path,isListed):
                 data['Ticker'] = ticker
                 # Reset the index to turn the Date index into a column
                 data = data.reset_index()
+                file_name = ticker[3] + '-TaiwanStocksHistData.csv'
+                combined_csv_path = os.path.join(save_dir, file_name)
+                # combined_csv_path = os.path.join(orig_combined_csv_path, ticker[0])
+
                 # Append data to CSV file
                 if not os.path.isfile(combined_csv_path):
                     # If file doesn't exist, write header
@@ -44,16 +45,17 @@ def download_data(save_dir,list_path,isListed):
                 else:
                     # If file exists, append without writing the header
                     data.to_csv(combined_csv_path, mode='a', index=False, header=False)
+
             else:
                 print(f'No data found for {ticker}')
         except Exception as e:
             print(f'Failed to download data for {ticker}: {e}')
 
-    print(f'Saved all stock data to {combined_csv_path}')
+    print(f'Saved all stock data to {save_dir}')
 
 
 def main():
-    save_dir = '~/Stock_project/TW_stock_data'
+    save_dir = '~/Stock_project/TW_stock_data/AllStockHist'
 
     #TWSE
     TWSE_path = '~/Stock_project/TW_stock_data/TWSE.csv'
