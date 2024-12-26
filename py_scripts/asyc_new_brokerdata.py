@@ -11,9 +11,16 @@ from bs4 import BeautifulSoup
 # -----------------------------------------------------------------------------
 # Logging Configuration
 # -----------------------------------------------------------------------------
-# Configure logging: you can adjust the filename, log level, and format as needed.
+
+# Create the "logs" directory if it doesn't exist yet.
+os.makedirs("logs", exist_ok=True)
+
+# Generate a filename that includes the local time (YearMonthDay_HourMinuteSecond).
+# Example filename: logs/broker_data_20241226_071759.log
+log_filename = time.strftime("logs/broker_data_%Y%m%d_%H%M%S.log", time.localtime())
+
 logging.basicConfig(
-    filename='logs/broker_data.log',  # or any path you prefer
+    filename=log_filename,
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
