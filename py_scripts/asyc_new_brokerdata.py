@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 # -----------------------------------------------------------------------------
 # Configure logging: you can adjust the filename, log level, and format as needed.
 logging.basicConfig(
-    filename='~/logs/broker_data.log',  # or any path you prefer
+    filename='logs/broker_data.log',  # or any path you prefer
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 # Global User Agents List
 # -----------------------------------------------------------------------------
+
+MAX_RETRIES = 4    # Number of attempts before giving up
+RETRY_DELAY = 2    # Seconds to wait between retries; you can also do exponential backoff
+
+
 USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
     '(KHTML, like Gecko) Version/17.5 Safari/605.1.15',
@@ -100,28 +105,89 @@ def construct_url(brokerHQ_id, broker_id, c, start_date, end_date):
 # -----------------------------------------------------------------------------
 # Async Fetch
 # -----------------------------------------------------------------------------
-async def fetch_async(session, url):
+
+async def fetch_async(session, url, max_retries=MAX_RETRIES, retry_delay=RETRY_DELAY):
     """
-    Asynchronously fetches the text content of the provided URL.
+    Asynchronously fetches the text content of the provided URL with retry logic.
 
     Args:
       session (aiohttp.ClientSession): The aiohttp session to use.
       url (str): The URL to fetch.
+      max_retries (int): How many times to retry upon certain exceptions (e.g. Timeout).
+      retry_delay (int): Base delay in seconds to wait before each retry.
 
     Returns:
-      str or None: The HTML text if successful, or None if an error occurred.
+      str or None: The HTML text if successful, or None if all attempts fail.
     """
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
     }
-    try:
-        async with session.get(url, headers=headers, timeout=10) as response:
-            response.raise_for_status()
-            return await response.text(errors="replace")
-    except Exception as e:
-        # Log the error instead of printing
-        logger.error(f"Error fetching {url}: {e}", exc_info=True)
-        return None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            async with session.get(url, headers=headers, timeout=10) as response:
+                response.raise_for_status()
+                return await response.text(errors="replace")
+
+        except asyncio.TimeoutError as e:
+            logger.warning(
+                f"TimeoutError on attempt {attempt}/{max_retries} for {url}: {e}"
+            )
+            if attempt == max_retries:
+                logger.error(f"Max retries reached. Giving up on {url}")
+                return None
+
+            # Wait (exponential backoff or fixed delay)
+            # e.g., exponential backoff -> await asyncio.sleep(retry_delay * (2 ** (attempt - 1)))
+            await asyncio.sleep(retry_delay)
+
+        except asyncio.CancelledError as e:
+            # Usually best to re-raise CancelledError so tasks can shut down gracefully.
+            logger.error(f"Request cancelled for {url}: {e}")
+            raise
+
+        except Exception as e:
+            # Catch-all for other errors
+            logger.error(
+                f"Error fetching {url} on attempt {attempt}/{max_retries}: {e}",
+                exc_info=True
+            )
+            # Depending on your logic, you might want to:
+            # 1. Retry on all exceptions
+            # 2. Retry only on certain transient errors
+            # For now, let's retry again anyway unless last attempt
+            if attempt == max_retries:
+                logger.error(f"Max retries reached. Giving up on {url}")
+                return None
+
+            await asyncio.sleep(retry_delay)
+
+    # Fallback if something unexpected happens
+    return None
+
+
+# async def fetch_async(session, url):
+#     """
+#     Asynchronously fetches the text content of the provided URL.
+
+#     Args:
+#       session (aiohttp.ClientSession): The aiohttp session to use.
+#       url (str): The URL to fetch.
+
+#     Returns:
+#       str or None: The HTML text if successful, or None if an error occurred.
+#     """
+#     headers = {
+#         "User-Agent": random.choice(USER_AGENTS),
+#     }
+#     try:
+#         async with session.get(url, headers=headers, timeout=10) as response:
+#             response.raise_for_status()
+#             return await response.text(errors="replace")
+#     except Exception as e:
+#         # Log the error instead of printing
+#         logger.error(f"Error fetching {url}: {e}", exc_info=True)
+        # return None
 
 # -----------------------------------------------------------------------------
 # Main Async Function
