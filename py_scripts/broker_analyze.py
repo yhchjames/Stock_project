@@ -37,8 +37,8 @@ def get_signal_dates_from_price(df_price):
     # (1) 當日收盤 <= 過去7日MA * 1.03
     cond1 = df_price['Close'] <= df_price['MA7_past'] * 1.03
 
-    # (2) 未來 7 日 MA >= 過去 7 日 MA * 1.30
-    cond2 = df_price['MA7_future'] >= df_price['MA7_past'] * 1.30
+    # (2) 未來 7 日 MA >= current price
+    cond2 = df_price['MA7_future'] >= df_price['Close'] * 1.20
 
     df_price['is_signal'] = cond1 & cond2
 
@@ -95,7 +95,8 @@ def big_buy_calc(broker_files,volume_dict):
 
     big_buy_result_list = []
 
-    for bf in broker_files:
+    for idx, bf in enumerate(broker_files):
+        print(f'--- Deal with {bf[-8:]} , process is {idx+1}/{len(broker_files)} ----')
         df_b = pd.read_csv(bf,
                             dtype={"Ticker":"string",
                                     "Name":"string",
@@ -198,23 +199,21 @@ if __name__ == '__main__':
 
     #Deal with stock hist data, add signal dates in
     df_all_signals = tag_price_files(price_files)
-    df_all_signals.to_csv('~/Stock_project/TW_stock_data/big_gain_signals.csv', index=False)
+    df_all_signals.to_csv('~/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv', index=False)
 
 
     #Deal with brocker trading data, tag big buy date and tickers
     volume_dict = build_volume_lookup(price_files, start_date='2023-01-01')
-
     # broker_trading_folder = 'small_broker_trading'
-    # broker_files = list_csv_files(broker_trading_folder)
-    broker_files = ['~/Stock_project/TW_stock_data/small_broker_trading/9661.csv']
-
+    # broker_files = ['~/Stock_project/TW_stock_data/small_broker_trading/9661.csv']
+    broker_files = list_csv_files('~/Stock_project/TW_stock_data/small_broker_trading')
     df_broker_big_buy = big_buy_calc(broker_files,volume_dict)  # 用來裝所有檔案計算出的大量買入紀錄
-    df_broker_big_buy.to_csv('~/Stock_project/TW_stock_data/broker_big_buy.csv', index=False)
+    df_broker_big_buy.to_csv('~/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv', index=False)
 
     #calculate success rate
-    big_gain_signals_path = '~/Stock_project/TW_stock_data/big_gain_signals.csv'
-    broker_big_buy_path = '~/Stock_project/TW_stock_data/broker_big_buy.csv'
-    save_dir = '~/Stock_project/TW_stock_data/'
+    big_gain_signals_path = '~/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv'
+    broker_big_buy_path = '~/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv'
+    save_dir = '~/Stock_project/TW_stock_data/calc_result/'
     cheating_rate(big_gain_signals_path,broker_big_buy_path, save_dir)
 
 
