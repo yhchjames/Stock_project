@@ -137,7 +137,7 @@ def big_buy_calc(broker_files,volume_dict):
         df_b['is_big_buy_c2'] = cond2
 
         # 篩出符合條件的 row
-        df_big_buy = df_b[df_b['is_big_buy_c2'] & df_b['is_big_buy_c1']].copy()
+        df_big_buy = df_b[df_b['is_big_buy_c2'] | df_b['is_big_buy_c1']].copy()
 
         # 如果你的記憶體更小，不想一次收集在 list 中，也可以直接寫檔案：
         # df_big_buy.to_csv('broker_big_buy.csv', mode='a', header=False, index=False)
@@ -151,7 +151,7 @@ def big_buy_calc(broker_files,volume_dict):
     # return big_buy_result_list
     return pd.concat(big_buy_result_list, ignore_index=True)
 
-def cheating_rate(df_signals, df_big_buy,save_dir):
+def cheating_rate(df_signals, df_big_buy,save_dir,success_threshold):
     df_signals = pd.read_csv(df_signals)
     df_signals['Date'] = pd.to_datetime(df_signals['Date'])
     df_signals['Ticker'] = df_signals['Ticker'].astype(str)
@@ -172,27 +172,56 @@ def cheating_rate(df_signals, df_big_buy,save_dir):
     # 計算成功率
     # - total_count: 該券商(或分點)的「大量買入」次數
     # - success_count: 該券商(或分點)與 signal match 的次數
-    df_total = df_big_buy.groupby('Branch').size().reset_index(name='total_count')
-    df_success = df_merged.groupby('Branch').size().reset_index(name='success_count')
+    df_total = df_big_buy.groupby('Branch_Code').size().reset_index(name='total_count')
+    df_success = df_merged.groupby('Branch_Code').size().reset_index(name='success_count')
 
-    df_stat = pd.merge(df_total, df_success, on='Branch', how='left')
+    df_stat = pd.merge(df_total, df_success, on='Branch_Code', how='left')
     df_stat['success_rate'] = df_stat['success_count'] / df_stat['total_count'] * 100
     df_stat.fillna({'success_count': 0, 'success_rate': 0}, inplace=True)
 
     df_stat.to_csv(save_dir+'broker_success_rate.csv', index=False)
 
     #success rate to a every ticker
-    df_total_bt = df_big_buy.groupby(['Branch','Ticker']).size().reset_index(name='total_count')
-    df_success_bt = df_merged.groupby(['Branch','Ticker']).size().reset_index(name='success_count')
-    df_stat_bt = pd.merge(df_total_bt, df_success_bt, on=['Branch','Ticker'], how='left')
+    df_total_bt = df_big_buy.groupby(['Branch_Code','Ticker']).size().reset_index(name='total_count')
+    df_success_bt = df_merged.groupby(['Branch_Code','Ticker']).size().reset_index(name='success_count')
+    df_stat_bt = pd.merge(df_total_bt, df_success_bt, on=['Branch_Code','Ticker'], how='left')
     df_stat_bt['success_count'] = df_stat_bt['success_count'].fillna(0).astype(int)
     df_stat_bt['success_rate'] = df_stat_bt['success_count'] / df_stat_bt['total_count']
     df_stat_bt['success_rate_percent'] = df_stat_bt['success_rate'] * 100
 
     df_stat_bt.to_csv(save_dir+'broker_branch_ticker_success_rate.csv', index=False)
 
+    #calc today big buy branch
+    success_rate_file = save_dir+'broker_branch_ticker_success_rate.csv'
+    df_success_rate = pd.read_csv(success_rate_file,
+                                  dtype={"Branch_Code":"string","Ticker":"string"})
+    # 篩選出成功率 > 0.49
+    df_high_sr = df_success_rate[df_success_rate['success_rate'] > success_threshold].copy()
+    # 先做成 (Branch_Code, Ticker) set 以便快速比對
+    high_sr_pairs = set(zip(df_high_sr['Branch_Code'], df_high_sr['Ticker']))
+    
+    latest_date = df_big_buy['Date'].max()
+    df_latest_day = df_big_buy[df_big_buy['Date'] == latest_date].copy()
+    if df_latest_day.empty:
+        print(f"No branch big buy today {latest_date}")
+    else:
+        print(f'There are {len(df_latest_day)} big buy data for today {latest_date}')
+        df_merge_cheater = pd.merge(
+            df_latest_day,
+            df_high_sr[['Branch_Code','Ticker','success_rate']],  # 只帶需要的欄位
+            on=['Branch_Code','Ticker'],
+            how='inner'
+        )
+        if df_merge_cheater.empty:
+            print('No cheater big buy today')
+        else:
+            print('Cheaters bought:')
+            print(df_merge_cheater[['Branch','Ticker','Date','diff','Volume','success_rate']].to_string(index=False))
+            df_merge_cheater.to_csv(save_dir+'cheater_today_bought.csv', index=False)
+
 
 if __name__ == '__main__':
+
 
     price_folder = '~/Stock_project/TW_stock_data/AllStockHist'
     price_files = list_csv_files(price_folder)
@@ -210,11 +239,14 @@ if __name__ == '__main__':
     df_broker_big_buy = big_buy_calc(broker_files,volume_dict)  # 用來裝所有檔案計算出的大量買入紀錄
     df_broker_big_buy.to_csv('~/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv', index=False)
 
+
     #calculate success rate
     big_gain_signals_path = '~/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv'
     broker_big_buy_path = '~/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv'
     save_dir = '~/Stock_project/TW_stock_data/calc_result/'
-    cheating_rate(big_gain_signals_path,broker_big_buy_path, save_dir)
+    cheating_rate(big_gain_signals_path,broker_big_buy_path, save_dir,0.49)
+
+    print('--Finish broker_analyze--')
 
 
 
