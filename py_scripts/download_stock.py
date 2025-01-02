@@ -42,6 +42,9 @@ def download_data(save_dir,list_path,isListed):
         try:
             data = yf.download(ticker, period='max', progress=False)
             if not data.empty:
+                #flatten the header
+                if isinstance(data.columns, pd.MultiIndex):
+                    data.columns = [col[0] for col in data.columns.values]
                 # Add a column for the ticker symbol
                 data['Ticker'] = ticker
                 # Reset the index to turn the Date index into a column
