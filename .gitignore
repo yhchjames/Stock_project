@@ -3,3 +3,4 @@ TW_stock_data/
 .vscode/
 logs/
 temp.py
+sh_logs/
