@@ -7,6 +7,18 @@ def download_data(save_dir,list_path,isListed):
     list_path = os.path.expanduser(list_path)
     save_dir = os.path.expanduser(save_dir)
 
+    #delete the old file first
+    if os.path.isdir(save_dir):
+        for filename in os.listdir(save_dir):
+            file_path = os.path.join(save_dir,filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Because : {e}')
+    else:
+        print(f'save_dir = {save_dir} is not a dir')
+
     # Create Yahoo Finance tickers by appending '.TW or TWO' to each code
     if isListed:
         df = pd.read_csv(list_path, dtype={"公司代號":"string", "公司簡稱":"string"})
