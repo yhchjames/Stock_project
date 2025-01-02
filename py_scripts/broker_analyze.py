@@ -213,7 +213,7 @@ def cheating_rate(df_signals, df_big_buy,save_dir,success_threshold):
             how='inner'
         )
         if df_merge_cheater.empty:
-            print('No cheater big buy today')
+            print('No cheater bought previous ticker today ')
         else:
             print('Cheaters bought:')
             print(df_merge_cheater[['Branch','Ticker','Date','diff','Volume','success_rate']].to_string(index=False))
