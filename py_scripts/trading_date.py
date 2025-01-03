@@ -6,11 +6,12 @@ from datetime import datetime, timedelta
 def generate_trading_date():
     #generate trading day by extract info from 2330
     today = datetime.today()
-    yesterday = today - timedelta(days=1)
-    yesterday_str = yesterday.strftime('%Y-%m-%d')
+    # yesterday = today - timedelta(days=1)
+    # yesterday_str = yesterday.strftime('%Y-%m-%d')
+    today_str = today.strftime('%Y-%m-%d')
 
     # TW2330 = yf.download('2330.TW', start='2023-01-01',end='2024-12-20')
-    TW2330 = yf.download('2330.TW', start='2023-01-01', end=yesterday_str)
+    TW2330 = yf.download('2330.TW', start='2023-01-01', end=today_str) #end is not included
 
     # TW2330['Ticker'] = '2330.TW'
     TW2330 = TW2330.reset_index()

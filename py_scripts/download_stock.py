@@ -2,39 +2,53 @@ import os
 import yfinance as yf
 import pandas as pd
 
+def clean_directory(save_dir):
+    save_dir = os.path.expanduser(save_dir)
+    print(f"Expanding save_dir: {save_dir}")
+
+    if os.path.isdir(save_dir):
+        contents = os.listdir(save_dir)
+        print(f"Contents of {save_dir} before cleaning: {contents}")
+
+        for filename in contents:
+            file_path = os.path.join(save_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                    print(f"Deleted file: {file_path}")
+                else:
+                    print(f"Skipping non-file (maybe directory?): {file_path}")
+            except Exception as e:
+                print(f"Failed to delete {file_path}. Because: {e}")
+
+        # Check remaining contents after attempting to clean
+        print(f"Contents of {save_dir} after cleaning: {os.listdir(save_dir)}")
+
+    else:
+        print(f"save_dir = {save_dir} is not a dir")
+
+
 
 def download_data(save_dir,list_path,isListed):
     list_path = os.path.expanduser(list_path)
     save_dir = os.path.expanduser(save_dir)
-
-    #delete the old file first
-    if os.path.isdir(save_dir):
-        for filename in os.listdir(save_dir):
-            file_path = os.path.join(save_dir,filename)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(f'Failed to delete {file_path}. Because : {e}')
-    else:
-        print(f'save_dir = {save_dir} is not a dir')
 
     # Create Yahoo Finance tickers by appending '.TW or TWO' to each code
     if isListed:
         df = pd.read_csv(list_path, dtype={"公司代號":"string", "公司簡稱":"string"})
         df = df.loc[ :, ['公司代號','公司簡稱'] ]
         df.rename(columns = {'公司代號':'ticker','公司簡稱':'name'}, inplace=True)
-        tickers = df['ticker'] + '.TW'
+        tickers = df['ticker'].apply(lambda x: x + '.TW').tolist()
     else:
         df = pd.read_csv(list_path, dtype={"股票代號":"string", "名稱":"string"})
         df = df.loc[ :, ['股票代號','名稱'] ]
         df.rename(columns = {'股票代號':'ticker','名稱':'name'}, inplace=True)
-        tickers = df['ticker'] + '.TWO'
-    tickers = tickers.tolist()
+        tickers = df['ticker'].apply(lambda x: x + '.TWO').tolist()
 
     # Remove the file if it already exists to prevent duplicate data
     # if os.path.exists(combined_csv_path):
     #     os.remove(combined_csv_path)
+
 
     # Download historical data for each ticker and append to the CSV file
     for idx, ticker in enumerate(tickers):
@@ -71,6 +85,7 @@ def download_data(save_dir,list_path,isListed):
 
 def main():
     save_dir = '~/Stock_project/TW_stock_data/AllStockHist'
+    clean_directory(save_dir)
 
     #TWSE
     TWSE_path = '~/Stock_project/TW_stock_data/TWSE.csv'
