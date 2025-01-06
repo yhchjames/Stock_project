@@ -4,3 +4,5 @@ TW_stock_data/
 logs/
 temp.py
 sh_logs/
+temp/
+tempfile
