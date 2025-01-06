@@ -30,7 +30,7 @@ cd "$PY_FOLDER" || {
 # List of Python files to execute
 python_files=(
     "trading_date.py"
-    "download_stock.py"
+    "async_download_stock.py"
     "daily_asyc_brokerdata.py"
     "split_brokerdata.py"
     "broker_analyze.py"

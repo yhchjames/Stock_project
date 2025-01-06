@@ -42,8 +42,11 @@ def get_signal_dates_from_price(df_price):
 
     df_price['is_signal'] = cond1 & cond2
 
+    # Mark rows where the next row's 'is_signal' is True
+    df_price['is_signal_next'] = df_price['is_signal'].shift(-1, fill_value=False)
+
     # 取出符合條件的 row
-    df_signals = df_price[df_price['is_signal']].copy()
+    df_signals = df_price[df_price['is_signal'] | df_price['is_signal_next']].copy()
     return df_signals
 
 def tag_price_files(price_files, start_date='2023-01-01'):
@@ -156,7 +159,20 @@ def cheating_rate(df_signals, df_big_buy,save_dir,success_threshold):
     df_signals['Date'] = pd.to_datetime(df_signals['Date'])
     df_signals['Ticker'] = df_signals['Ticker'].astype(str)
 
-    df_big_buy = pd.read_csv(df_big_buy)
+    df_big_buy = pd.read_csv(df_big_buy,
+                             thousands=',',
+                             dtype={'Ticker':'string',
+                                    'Name':'string',
+                                    'buy':int,
+                                    'sell':int,
+                                    'diff':int,
+                                    'Branch':'string',
+                                    'Date':'string',
+                                    'Branch_Code':'string',
+                                    'diff_7days_avg':float,
+                                    'Volume':float,
+                                    'is_big_buy_c1':bool,
+                                    'is_big_buy_c2':bool})
     df_big_buy['Date'] = pd.to_datetime(df_big_buy['Date'])
     df_big_buy['Ticker'] = df_big_buy['Ticker'].astype(str)
 
