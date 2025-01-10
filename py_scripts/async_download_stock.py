@@ -4,6 +4,8 @@ from functools import partial
 
 import pandas as pd
 from twstock import Stock
+import math
+import random
 
 def clean_directory(save_dir):
     save_dir = os.path.expanduser(save_dir)
@@ -34,6 +36,40 @@ def clean_directory(save_dir):
 # Async Downloading of Ticker #
 # --------------------------- #
 
+async def fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0):
+    """
+    A simple helper for retrying a function (such as stock.fetch_from(...))
+    with exponential backoff and jitter.
+    
+    :param fetch_func:  A no-arg function/coroutine that returns data or raises an exception
+    :param max_retries: Max number of retries
+    :param base_delay:  Initial backoff delay (seconds)
+    """
+    for attempt in range(1, max_retries + 1):
+        try:
+            return await fetch_func()
+        except (ConnectionResetError, TimeoutError) as exc:
+            # Log or print the error
+            print(f"Attempt {attempt} failed with error {exc}. Retrying...")
+
+            if attempt == max_retries:
+                # Re-raise the exception if max retries exhausted
+                raise
+
+            # Sleep with exponential backoff + jitter
+            # e.g. backoff = base_delay * 2^(attempt-1)
+            # Add jitter for good measure
+            backoff = base_delay * (2 ** (attempt - 1))
+            jitter = random.uniform(0, 0.3 * backoff)
+            sleep_time = backoff + jitter
+            print(f"Sleeping for {sleep_time:.2f} seconds before next retry...")
+            await asyncio.sleep(sleep_time)
+        except Exception:
+            # If it's another exception, just raise it directly
+            raise
+
+
+
 async def download_single_ticker(ticker: str, is_listed: bool, start_y: int, start_m: int, save_dir: str, sem: asyncio.Semaphore):
     """
     Download historical data for a single ticker asynchronously.
@@ -49,8 +85,16 @@ async def download_single_ticker(ticker: str, is_listed: bool, start_y: int, sta
             else:
                 stock = await asyncio.to_thread(Stock, ticker[:-4], False)  # initial_fetch=False
 
+            async def fetch_func():
+                # This function itself needs to be awaitable if we want to call it with 'await'.
+                # We'll wrap the synchronous call in asyncio.to_thread:
+                data = await asyncio.to_thread(stock.fetch_from, start_y, start_m)
+                return data
+            
+            data = await fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0)
+
             # The actual data fetch is also synchronous, so run in a thread:
-            data = await asyncio.to_thread(stock.fetch_from, start_y, start_m)
+            # data = await asyncio.to_thread(stock.fetch_from, start_y, start_m)
             data = pd.DataFrame(data)
 
             if data.empty:
@@ -109,7 +153,7 @@ async def async_download_data(
     is_listed: bool, 
     start_y: int, 
     start_m: int,
-    max_concurrent_tasks: int = 15
+    max_concurrent_tasks: int = 10
 ):
     """
     Asynchronous version of download_data. 
@@ -159,12 +203,12 @@ async def main():
     # TWSE
     TWSE_path = '~/Stock_project/TW_stock_data/TWSE.csv'
     # Download concurrently
-    await async_download_data(save_dir, TWSE_path, is_listed=True, start_y=2023, start_m=1, max_concurrent_tasks=15)
+    await async_download_data(save_dir, TWSE_path, is_listed=True, start_y=2023, start_m=1, max_concurrent_tasks=10)
 
     # OTC
     OTC_path = '~/Stock_project/TW_stock_data/OTCs.csv'
     # Download concurrently
-    await async_download_data(save_dir, OTC_path, is_listed=False, start_y=2023, start_m=1, max_concurrent_tasks=15)
+    await async_download_data(save_dir, OTC_path, is_listed=False, start_y=2023, start_m=1, max_concurrent_tasks=10)
 
 # ----------------- #
 # Entry Point Block #
