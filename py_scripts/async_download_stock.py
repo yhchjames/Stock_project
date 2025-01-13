@@ -6,6 +6,9 @@ import pandas as pd
 from twstock import Stock
 import math
 import random
+import requests
+from requests.exceptions import ConnectionError as RequestsConnectionError
+import socket
 
 def clean_directory(save_dir):
     save_dir = os.path.expanduser(save_dir)
@@ -48,7 +51,7 @@ async def fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0):
     for attempt in range(1, max_retries + 1):
         try:
             return await fetch_func()
-        except (ConnectionResetError, TimeoutError) as exc:
+        except (Exception) as exc:
             # Log or print the error
             print(f"Attempt {attempt} failed with error {exc}. Retrying...")
 
@@ -64,9 +67,9 @@ async def fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0):
             sleep_time = backoff + jitter
             print(f"Sleeping for {sleep_time:.2f} seconds before next retry...")
             await asyncio.sleep(sleep_time)
-        except Exception:
-            # If it's another exception, just raise it directly
-            raise
+        # except Exception:
+        #     # If it's another exception, just raise it directly
+        #     raise
 
 
 
