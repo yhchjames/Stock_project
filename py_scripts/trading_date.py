@@ -12,6 +12,7 @@ def generate_trading_date():
 
     # TW2330 = yf.download('2330.TW', start='2023-01-01',end='2024-12-20')
     TW2330 = yf.download('2330.TW', start='2023-01-01', end=today_str) #end is not included
+    # TW2330 = yf.download('2330.TW')
 
     # TW2330['Ticker'] = '2330.TW'
     TW2330 = TW2330.reset_index()

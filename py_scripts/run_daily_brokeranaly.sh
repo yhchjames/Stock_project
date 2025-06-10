@@ -34,6 +34,7 @@ python_files=(
     "daily_asyc_brokerdata.py"
     "split_brokerdata.py"
     "broker_analyze.py"
+    "send_email.py"
 )
 
 # Run each Python file and append stdout to the log file
