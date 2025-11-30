@@ -25,6 +25,7 @@ def get_latest_csv(directory):
     """
     在指定的目錄中尋找最新修改的 CSV 檔案
     """
+    directory = os.path.expanduser(directory)
     csv_files = glob.glob(os.path.join(directory, '*.log'))
     if not csv_files:
         raise Exception("資料夾中找不到 CSV 檔案")
@@ -33,7 +34,7 @@ def get_latest_csv(directory):
     return latest_file
 
 # === 設定參數 ===
-csv_directory = '/home/ec2-user/Stock_project/py_scripts/sh_logs'   # CSV 檔案所在的資料夾
+csv_directory = '~/Documents/Dev/Cheater_finder/Stock_project/py_scripts/sh_logs'   # CSV 檔案所在的資料夾
 try:
     latest_csv = get_latest_csv(csv_directory)
     print(f"找到最新的 CSV 檔案：{latest_csv}")
@@ -57,7 +58,7 @@ body = "".join(last10)
 msg = MIMEMultipart()
 msg['From'] = sender
 msg['To'] = recipient
-msg['Subject'] = "Cheater finding result"
+msg['Subject'] = "Cheater finding result from mac"
 
 msg.attach(MIMEText(body, 'plain'))
 

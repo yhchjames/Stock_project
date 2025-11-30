@@ -239,27 +239,27 @@ def cheating_rate(df_signals, df_big_buy,save_dir,success_threshold):
 if __name__ == '__main__':
 
 
-    price_folder = '~/Stock_project/TW_stock_data/AllStockHist'
+    price_folder = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/AllStockHist'
     price_files = list_csv_files(price_folder)
 
     #Deal with stock hist data, add signal dates in
     df_all_signals = tag_price_files(price_files)
-    df_all_signals.to_csv('~/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv', index=False)
+    df_all_signals.to_csv('~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv', index=False)
 
 
     #Deal with brocker trading data, tag big buy date and tickers
     volume_dict = build_volume_lookup(price_files, start_date='2023-01-01')
     # broker_trading_folder = 'small_broker_trading'
-    # broker_files = ['~/Stock_project/TW_stock_data/small_broker_trading/9661.csv']
-    broker_files = list_csv_files('~/Stock_project/TW_stock_data/small_broker_trading')
+    # broker_files = ['~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/small_broker_trading/9661.csv']
+    broker_files = list_csv_files('~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/small_broker_trading')
     df_broker_big_buy = big_buy_calc(broker_files,volume_dict)  # 用來裝所有檔案計算出的大量買入紀錄
-    df_broker_big_buy.to_csv('~/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv', index=False)
+    df_broker_big_buy.to_csv('~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv', index=False)
 
 
     #calculate success rate
-    big_gain_signals_path = '~/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv'
-    broker_big_buy_path = '~/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv'
-    save_dir = '~/Stock_project/TW_stock_data/calc_result/'
+    big_gain_signals_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/calc_result/big_gain_signals.csv'
+    broker_big_buy_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/calc_result/broker_big_buy.csv'
+    save_dir = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/calc_result/'
     cheating_rate(big_gain_signals_path,broker_big_buy_path, save_dir,0.49)
 
     print('--Finish broker_analyze--')

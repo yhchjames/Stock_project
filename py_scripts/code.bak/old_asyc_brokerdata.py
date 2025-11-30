@@ -214,8 +214,8 @@ if __name__ == '__main__':
                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763'
                ]
 
-    Tradingdatefile_path = '~/Stock_project/TW_stock_data/Tradingdate.csv'
-    Brokerlist_path = '~/Stock_project/TW_stock_data/big_branch_list.csv'
-    Saved_path = '~/Stock_project/TW_stock_data/broker_trading_list.csv'
+    Tradingdatefile_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/Tradingdate.csv'
+    Brokerlist_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/big_branch_list.csv'
+    Saved_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/broker_trading_list.csv'
 
     go_through_dates(Tradingdatefile_path, Brokerlist_path, Saved_path)

@@ -49,9 +49,9 @@ def split_csv_by_branch(input_path, output_dir, chunksize=1000000):
     return files_list
 
 if __name__ == '__main__':
-    input_csv = '~/Stock_project/TW_stock_data/broker_trading_list.csv'
-    output_dir = '~/Stock_project/TW_stock_data/small_broker_trading'
-    files_list_csv = '~/Stock_project/TW_stock_data/small_broker_trading_list.csv'
+    input_csv = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/broker_trading_list.csv'
+    output_dir = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/small_broker_trading'
+    files_list_csv = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/small_broker_trading_list.csv'
     files_list = split_csv_by_branch(input_csv, output_dir)
     df = pd.DataFrame(files_list)
     df.to_csv(files_list_csv, index=False, mode='w')

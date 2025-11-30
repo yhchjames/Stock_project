@@ -84,15 +84,15 @@ def download_data(save_dir,list_path,isListed):
 
 
 def main():
-    save_dir = '~/Stock_project/TW_stock_data/AllStockHist'
+    save_dir = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/AllStockHist'
     clean_directory(save_dir)
 
     #TWSE
-    TWSE_path = '~/Stock_project/TW_stock_data/TWSE.csv'
+    TWSE_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/TWSE.csv'
     download_data(save_dir,TWSE_path,True)
 
     #OTC
-    OTC_path = '~/Stock_project/TW_stock_data/OTCs.csv'
+    OTC_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/OTCs.csv'
     download_data(save_dir,OTC_path,False)
 
 if __name__ == '__main__':

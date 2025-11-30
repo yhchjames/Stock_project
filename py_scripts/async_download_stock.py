@@ -1,6 +1,7 @@
 import os
 import asyncio
 from functools import partial
+import argparse
 
 import pandas as pd
 from twstock import Stock
@@ -73,7 +74,7 @@ async def fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0):
 
 
 
-async def download_single_ticker(ticker: str, is_listed: bool, start_y: int, start_m: int, save_dir: str, sem: asyncio.Semaphore):
+async def download_single_ticker(ticker: str, is_listed: bool, start_y: int, start_m: int, save_dir: str, sem: asyncio.Semaphore, single_ticker: bool = False):
     """
     Download historical data for a single ticker asynchronously.
     We wrap the synchronous twstock API with asyncio.to_thread to avoid blocking.
@@ -93,8 +94,10 @@ async def download_single_ticker(ticker: str, is_listed: bool, start_y: int, sta
                 # We'll wrap the synchronous call in asyncio.to_thread:
                 data = await asyncio.to_thread(stock.fetch_from, start_y, start_m)
                 return data
-            
-            data = await fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0)
+            if not single_ticker:
+                data = await fetch_data_with_retry(fetch_func, max_retries=5, base_delay=1.0)
+            else:
+                data = await asyncio.to_thread(stock.fetch_from, start_y, start_m)
 
             # The actual data fetch is also synchronous, so run in a thread:
             # data = await asyncio.to_thread(stock.fetch_from, start_y, start_m)
@@ -124,7 +127,10 @@ async def download_single_ticker(ticker: str, is_listed: bool, start_y: int, sta
 
             # Construct a file name. In your original code, you used `ticker[3]` which might be error-prone.
             # We'll just store each ticker's data to a file named <ticker>-TaiwanStocksHistData.csv
-            filename = f"{ticker[3]}-TaiwanStocksHistData.csv"
+            if not single_ticker:
+                filename = f"{ticker[3]}-TaiwanStocksHistData.csv"
+            else:
+                filename = f"{ticker}-TaiwanStocksHistData.csv"
             combined_csv_path = os.path.join(os.path.expanduser(save_dir), filename)
 
             # Save to CSV. We'll do this on a thread as well to avoid blocking:
@@ -198,20 +204,27 @@ async def async_download_data(
 # Async Main #
 # ---------- #
 
-async def main():
-    # Directory to clean and then re-download CSVs into
-    save_dir = '~/Stock_project/TW_stock_data/AllStockHist'
-    clean_directory(save_dir)
+async def main(ticker=None,save_dir=None):
 
-    # TWSE
-    TWSE_path = '~/Stock_project/TW_stock_data/TWSE.csv'
-    # Download concurrently
-    await async_download_data(save_dir, TWSE_path, is_listed=True, start_y=2023, start_m=1, max_concurrent_tasks=10)
+    if save_dir is None:
+        # Directory to clean and then re-download CSVs into
+        save_dir = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/AllStockHist'
+        clean_directory(save_dir)
 
-    # OTC
-    OTC_path = '~/Stock_project/TW_stock_data/OTCs.csv'
-    # Download concurrently
-    await async_download_data(save_dir, OTC_path, is_listed=False, start_y=2023, start_m=1, max_concurrent_tasks=10)
+    if ticker:
+        sem = asyncio.Semaphore(1)
+        is_listed = ticker.endswith('.TW')
+        await download_single_ticker(ticker, is_listed, 2023, 1, save_dir, sem, True)
+    else:
+        # TWSE
+        TWSE_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/TWSE.csv'
+        # Download concurrently
+        await async_download_data(save_dir, TWSE_path, is_listed=True, start_y=2023, start_m=1, max_concurrent_tasks=10)
+
+        # OTC
+        OTC_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/OTCs.csv'
+        # Download concurrently
+        await async_download_data(save_dir, OTC_path, is_listed=False, start_y=2023, start_m=1, max_concurrent_tasks=10)
 
 # ----------------- #
 # Entry Point Block #
@@ -219,4 +232,11 @@ async def main():
 
 if __name__ == '__main__':
     
-    asyncio.run(main())
+    # asyncio.run(main())
+    parser = argparse.ArgumentParser(description='Download Taiwan stock data')
+    parser.add_argument('-t', '--ticker', type=str, help='Download data for a specific ticker (e.g., 2330.TW or 2330.TWO)')
+    parser.add_argument('-s', '--save_dir', type=str, help='Directory to save downloaded data')
+    
+    args = parser.parse_args()
+    
+    asyncio.run(main(ticker=args.ticker, save_dir=args.save_dir))

@@ -495,8 +495,8 @@ def go_through_dates(Tradingdatefile_path, Brokerlist_path, Saved_path):
 # Entry Point
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    Tradingdatefile_path = '~/Stock_project/TW_stock_data/Tradingdate.csv'
-    Brokerlist_path = '~/Stock_project/TW_stock_data/big_branch_list.csv'
-    Saved_path = '~/Stock_project/TW_stock_data/broker_trading_list.csv'
+    Tradingdatefile_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/Tradingdate.csv'
+    Brokerlist_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/big_branch_list.csv'
+    Saved_path = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data/broker_trading_list.csv'
 
     go_through_dates(Tradingdatefile_path, Brokerlist_path, Saved_path)

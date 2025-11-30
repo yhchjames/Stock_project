@@ -5,10 +5,10 @@ appdirs==1.4.4
 async-timeout==5.0.1
 attrs==24.3.0
 beautifulsoup4==4.12.3
-certifi @ file:///croot/certifi_1745939216646/work/certifi
-cffi @ file:///croot/cffi_1736182485317/work
+certifi
+cffi
 charset-normalizer==3.4.0
-curl_cffi @ file:///home/conda/feedstock_root/build_artifacts/curl-cffi_1749450619896/work
+curl_cffi
 frozendict==2.4.6
 frozenlist==1.5.0
 html5lib==1.1
@@ -21,7 +21,7 @@ pandas==2.2.3
 peewee==3.17.8
 platformdirs==4.3.6
 propcache==0.2.1
-pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+pycparser
 python-dateutil==2.9.0.post0
 pytz==2024.2
 requests==2.32.3
@@ -33,4 +33,4 @@ tzdata==2024.2
 urllib3==2.2.3
 webencodings==0.5.1
 yarl==1.18.3
-yfinance @ file:///home/conda/feedstock_root/build_artifacts/yfinance_1746373349020/work
+yfinance

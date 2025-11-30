@@ -64,15 +64,15 @@ def process_broker_file(broker_file, df_volume, all_trading_days):
 
 def main():
     # Load volume data and trading days
-    df_volume = pd.read_csv('~/stock_project/TW_stock_data/TW_stock_data_2023_24.csv', 
+    df_volume = pd.read_csv('~/Documents/Dev/Cheater_finder/stock_project/TW_stock_data/TW_stock_data_2023_24.csv', 
                             dtype={'Ticker': 'string', 'Volume':'float'})
     df_volume['Ticker'] = df_volume['Ticker'].str.replace(r'\.TWO|\.TW', '', regex=True)
     df_volume['Date'] = pd.to_datetime(df_volume['Date'], errors='coerce')
     all_trading_days = pd.Series(df_volume['Date'].unique()).sort_values()
 
     # Directory with broker-split files
-    broker_dir = '~/stock_project/Taiwan_stock_data/broker_split_files'
-    output_file = '~/stock_project/Taiwan_stock_data/broker_taged.csv'
+    broker_dir = '~/Documents/Dev/Cheater_finder/stock_project/Taiwan_stock_data/broker_split_files'
+    output_file = '~/Documents/Dev/Cheater_finder/stock_project/Taiwan_stock_data/broker_taged.csv'
 
     # Process each broker CSV and append results
     broker_files = glob(os.path.join(broker_dir, '*.csv'))

@@ -21,7 +21,7 @@ def generate_trading_date():
     Tradingdate = TW2330[['Date']].copy()
     Tradingdate.loc[:,'str_date'] = Tradingdate['Date'].dt.strftime('%Y-%m-%d')
 
-    save_dir = '~/Stock_project/TW_stock_data'
+    save_dir = '~/Documents/Dev/Cheater_finder/Stock_project/TW_stock_data'
     Tradingdate_csv_path = os.path.join(save_dir, 'Tradingdate.csv')
     Tradingdate.to_csv(Tradingdate_csv_path, index = False)
 
