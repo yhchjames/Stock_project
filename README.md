@@ -25,3 +25,4 @@ $run_daily_brokeranaly.sh is the one-button run.
 ## Note:
 Branches trading data is from FUBON's website.  
 Stock price is from twstock. yfinance gave me some wrong data.
+And twstock needs to do some modifies to fit TWO stocks.
